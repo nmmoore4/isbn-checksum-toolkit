@@ -47,12 +47,21 @@ format_isbn(record, group_size=3)        # "030-640-615-2"
 The EAN-13 functions (`parse_ean13`, `is_valid_ean13`, `format_ean13`) use the
 same mod-10 math, since ISBN-13 is just an EAN-13 with a reserved prefix.
 
+## Testing
+
+```
+pip install -e ".[test]"
+pytest
+```
+
 ## Status
 
 Early skeleton: ISBN-10, ISBN-13, and EAN-13 checksum math and parsing are
-implemented and correct. Not yet done: UPC-A (its check-digit weights are
-offset from EAN-13's, so it needs its own function), a command-line entry
-point, and a test suite.
+implemented and correct, with a pytest suite covering known-valid and
+known-invalid numbers for all three formats. Not yet done: UPC-A (its
+check-digit weights are offset from EAN-13's, so it needs its own function),
+ISBN-10 to ISBN-13 conversion, a command-line entry point, and real
+registrant-range hyphenation.
 
 ## License
 

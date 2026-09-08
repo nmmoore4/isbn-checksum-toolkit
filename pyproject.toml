@@ -11,5 +11,8 @@ requires-python = ">=3.9"
 license = { text = "MIT" }
 authors = [{ name = "nmmoore4" }]
 
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
 [tool.setuptools.packages.find]
 include = ["isbn_checksum*"]
