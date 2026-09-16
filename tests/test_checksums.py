@@ -3,16 +3,20 @@ import pytest
 from isbn_checksum import (
     compute_isbn10_check_digit,
     compute_mod10_check_digit,
+    compute_upca_check_digit,
     format_digits,
     format_isbn,
+    format_upca,
     is_valid_ean13,
     is_valid_isbn10,
     is_valid_isbn13,
+    is_valid_upca,
     normalize,
     parse_ean13,
     parse_isbn,
     parse_isbn10,
     parse_isbn13,
+    parse_upca,
 )
 
 # Real, checkable numbers rather than made-up ones, so a copy/paste error in
@@ -20,6 +24,7 @@ from isbn_checksum import (
 VALID_ISBN10 = "0-306-40615-2"
 VALID_ISBN13 = "978-0-306-40615-7"
 VALID_EAN13 = "4006381333931"  # Kinder Surprise egg, a commonly cited EAN-13
+VALID_UPCA = "036000291452"  # Kellogg's Corn Flakes, a commonly cited UPC-A
 
 
 def test_normalize_strips_punctuation_and_uppercases():
@@ -115,6 +120,38 @@ def test_parse_ean13_invalid_checksum_does_not_raise():
     assert record.check_digit == "1"
 
 
+def test_compute_upca_check_digit_matches_known_value():
+    assert compute_upca_check_digit("03600029145") == "2"
+
+
+def test_compute_upca_check_digit_rejects_wrong_length():
+    with pytest.raises(ValueError):
+        compute_upca_check_digit("12345")
+
+
+def test_parse_upca_valid():
+    record = parse_upca(VALID_UPCA)
+    assert record.is_valid
+    assert record.digits == "036000291452"
+    assert record.check_digit == "2"
+
+
+def test_parse_upca_invalid_checksum_does_not_raise():
+    record = parse_upca("036000291459")
+    assert not record.is_valid
+    assert record.check_digit == "2"  # what it should have been
+
+
+def test_parse_upca_wrong_length_raises():
+    with pytest.raises(ValueError):
+        parse_upca("03600029145")
+
+
+def test_parse_upca_non_digit_raises():
+    with pytest.raises(ValueError):
+        parse_upca("03600029145X")
+
+
 def test_parse_isbn_dispatches_by_length():
     assert isinstance(parse_isbn(VALID_ISBN10), type(parse_isbn10(VALID_ISBN10)))
     assert isinstance(parse_isbn(VALID_ISBN13), type(parse_isbn13(VALID_ISBN13)))
@@ -132,6 +169,8 @@ def test_is_valid_helpers_return_bool_not_raise():
     assert is_valid_isbn13("not-an-isbn") is False
     assert is_valid_ean13(VALID_EAN13) is True
     assert is_valid_ean13("not-an-ean") is False
+    assert is_valid_upca(VALID_UPCA) is True
+    assert is_valid_upca("not-a-upc") is False
 
 
 def test_format_digits_groups_left_to_right():
@@ -148,3 +187,8 @@ def test_format_digits_rejects_non_positive_group_size():
 def test_format_isbn_uses_parsed_digits():
     record = parse_isbn10(VALID_ISBN10)
     assert format_isbn(record) == "0306-4061-52"
+
+
+def test_format_upca_uses_parsed_digits():
+    record = parse_upca(VALID_UPCA)
+    assert format_upca(record) == "0360-0029-1452"

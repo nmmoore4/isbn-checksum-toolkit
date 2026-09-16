@@ -75,6 +75,27 @@ class ParsedEAN13:
     is_valid: bool
 
 
+@dataclass(frozen=True)
+class ParsedUPCA:
+    raw: str
+    digits: str
+    check_digit: str
+    is_valid: bool
+
+
+def compute_upca_check_digit(first_eleven: str) -> str:
+    """Compute the UPC-A check digit for the first eleven digits.
+
+    Weights alternate 3, 1, 3, 1... left to right - the mirror image of the
+    1, 3, 1, 3... weighting mod10 uses for ISBN-13/EAN-13, since UPC-A has one
+    fewer digit before the check digit and starts the pattern on the same foot.
+    """
+    if len(first_eleven) != 11 or not first_eleven.isdigit():
+        raise ValueError(f"expected 11 digits, got {first_eleven!r}")
+    total = sum(int(digit) * (3 if index % 2 == 0 else 1) for index, digit in enumerate(first_eleven))
+    return str((10 - total % 10) % 10)
+
+
 def parse_isbn10(raw: str) -> ParsedISBN10:
     digits = normalize(raw)
     if len(digits) != 10:
@@ -102,6 +123,14 @@ def parse_ean13(raw: str) -> ParsedEAN13:
         raise ValueError(f"EAN-13 must be 13 digits after removing separators, got {digits!r}")
     expected = compute_mod10_check_digit(digits[:12])
     return ParsedEAN13(raw=raw, digits=digits, check_digit=expected, is_valid=expected == digits[12])
+
+
+def parse_upca(raw: str) -> ParsedUPCA:
+    digits = normalize(raw)
+    if len(digits) != 12 or not digits.isdigit():
+        raise ValueError(f"UPC-A must be 12 digits after removing separators, got {digits!r}")
+    expected = compute_upca_check_digit(digits[:11])
+    return ParsedUPCA(raw=raw, digits=digits, check_digit=expected, is_valid=expected == digits[11])
 
 
 def parse_isbn(raw: str):
@@ -139,6 +168,13 @@ def is_valid_ean13(raw: str) -> bool:
         return False
 
 
+def is_valid_upca(raw: str) -> bool:
+    try:
+        return parse_upca(raw).is_valid
+    except ValueError:
+        return False
+
+
 def format_digits(digits: str, group_size: int = 4, separator: str = "-") -> str:
     """Group digits for readability, left to right, in fixed-size chunks.
 
@@ -160,4 +196,9 @@ def format_isbn(parsed, group_size: int = 4, separator: str = "-") -> str:
 
 def format_ean13(parsed: ParsedEAN13, group_size: int = 4, separator: str = "-") -> str:
     """Pretty-print a parsed EAN-13 record. See format_digits caveat."""
+    return format_digits(parsed.digits, group_size=group_size, separator=separator)
+
+
+def format_upca(parsed: ParsedUPCA, group_size: int = 4, separator: str = "-") -> str:
+    """Pretty-print a parsed UPC-A record. See format_digits caveat."""
     return format_digits(parsed.digits, group_size=group_size, separator=separator)

@@ -1,11 +1,12 @@
 # isbn-checksum-toolkit
 
-ISBN and EAN-13 numbers carry a check digit so a single mistyped or misscanned
-digit gets caught instead of silently pointing at the wrong book. ISBN-10 uses
-a mod-11 scheme (with 'X' standing in for a check value of 10); ISBN-13 and
-EAN-13 barcodes use mod-10 with alternating weights. This library implements
-both, plus a couple of pretty-printing helpers, as plain functions with no
-hidden state.
+ISBN, EAN-13, and UPC-A numbers carry a check digit so a single mistyped or
+misscanned digit gets caught instead of silently pointing at the wrong
+product. ISBN-10 uses a mod-11 scheme (with 'X' standing in for a check value
+of 10); ISBN-13, EAN-13, and UPC-A all use mod-10 with alternating weights,
+though UPC-A's weights start on the opposite parity since it has one fewer
+digit ahead of the check digit. This library implements all of them, plus a
+couple of pretty-printing helpers, as plain functions with no hidden state.
 
 ## Why a separate parser and validator
 
@@ -45,7 +46,10 @@ format_isbn(record, group_size=3)        # "030-640-615-2"
 ```
 
 The EAN-13 functions (`parse_ean13`, `is_valid_ean13`, `format_ean13`) use the
-same mod-10 math, since ISBN-13 is just an EAN-13 with a reserved prefix.
+same mod-10 math, since ISBN-13 is just an EAN-13 with a reserved prefix. The
+UPC-A functions (`parse_upca`, `is_valid_upca`, `format_upca`) use the same
+mod-10 idea, but with weights on the opposite parity - UPC-A has 11 digits
+before the check digit instead of 12.
 
 ## Testing
 
@@ -56,12 +60,11 @@ pytest
 
 ## Status
 
-Early skeleton: ISBN-10, ISBN-13, and EAN-13 checksum math and parsing are
-implemented and correct, with a pytest suite covering known-valid and
-known-invalid numbers for all three formats. Not yet done: UPC-A (its
-check-digit weights are offset from EAN-13's, so it needs its own function),
-ISBN-10 to ISBN-13 conversion, a command-line entry point, and real
-registrant-range hyphenation.
+Early skeleton: ISBN-10, ISBN-13, EAN-13, and UPC-A checksum math and parsing
+are implemented and correct, with a pytest suite covering known-valid and
+known-invalid numbers for all four formats. Not yet done: ISBN-10 to ISBN-13
+conversion, a command-line entry point, and real registrant-range
+hyphenation.
 
 ## License
 
