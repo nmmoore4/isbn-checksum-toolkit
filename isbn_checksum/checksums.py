@@ -175,6 +175,26 @@ def is_valid_upca(raw: str) -> bool:
         return False
 
 
+def isbn10_to_isbn13(raw: str) -> ParsedISBN13:
+    """Convert an ISBN-10 to the ISBN-13 that identifies the same edition.
+
+    The first nine digits of an ISBN-10 are the actual identifier (group,
+    registrant, publication); the tenth is just a check digit derived from
+    them. Converting means prefixing those nine digits with "978" (the
+    Bookland EAN prefix reserved for books) and computing a fresh check
+    digit for the result - the original ISBN-10 check digit is discarded
+    entirely rather than reused, so this works the same regardless of
+    whether the input's own check digit was correct.
+
+    Raises ValueError only if the input isn't structurally an ISBN-10
+    (wrong length or bad characters), matching parse_isbn10.
+    """
+    parsed10 = parse_isbn10(raw)
+    body = "978" + parsed10.digits[:9]
+    check = compute_mod10_check_digit(body)
+    return ParsedISBN13(raw=raw, digits=body + check, check_digit=check, is_valid=True)
+
+
 def format_digits(digits: str, group_size: int = 4, separator: str = "-") -> str:
     """Group digits for readability, left to right, in fixed-size chunks.
 

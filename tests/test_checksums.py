@@ -11,6 +11,7 @@ from isbn_checksum import (
     is_valid_isbn10,
     is_valid_isbn13,
     is_valid_upca,
+    isbn10_to_isbn13,
     normalize,
     parse_ean13,
     parse_isbn,
@@ -171,6 +172,27 @@ def test_is_valid_helpers_return_bool_not_raise():
     assert is_valid_ean13("not-an-ean") is False
     assert is_valid_upca(VALID_UPCA) is True
     assert is_valid_upca("not-a-upc") is False
+
+
+def test_isbn10_to_isbn13_matches_known_pairing():
+    converted = isbn10_to_isbn13(VALID_ISBN10)
+    assert converted.digits == "9780306406157"
+    assert converted.check_digit == "7"
+    assert converted.is_valid
+
+
+def test_isbn10_to_isbn13_ignores_original_check_digit():
+    # The tenth digit of an ISBN-10 never carries into the ISBN-13; only the
+    # first nine digits (the actual identifier) do, so a wrong check digit on
+    # the input still converts to the correct, valid ISBN-13.
+    converted = isbn10_to_isbn13("0-306-40615-9")
+    assert converted.digits == "9780306406157"
+    assert converted.is_valid
+
+
+def test_isbn10_to_isbn13_rejects_structurally_invalid_input():
+    with pytest.raises(ValueError):
+        isbn10_to_isbn13("not-an-isbn")
 
 
 def test_format_digits_groups_left_to_right():

@@ -20,7 +20,7 @@ an ISBN but someone mistyped a digit."
 ## Usage
 
 ```python
-from isbn_checksum import parse_isbn, parse_isbn10, parse_isbn13, format_isbn
+from isbn_checksum import parse_isbn, parse_isbn10, parse_isbn13, format_isbn, isbn10_to_isbn13
 
 # A canonical example: two editions of the same book.
 parse_isbn10("0-306-40615-2").is_valid   # True
@@ -38,6 +38,10 @@ typo.check_digit      # "2"  (what it should have been)
 
 # Structurally invalid input raises instead.
 parse_isbn10("abc")   # ValueError
+
+# Converting to ISBN-13 drops the ISBN-10 check digit and computes a fresh
+# one, since the check digit isn't part of the identifier itself.
+isbn10_to_isbn13("0-306-40615-2").digits  # "9780306406157"
 
 # Pretty-printing groups digits for readability (not official hyphenation,
 # which needs a registrant-range table this library doesn't ship).
@@ -62,9 +66,9 @@ pytest
 
 Early skeleton: ISBN-10, ISBN-13, EAN-13, and UPC-A checksum math and parsing
 are implemented and correct, with a pytest suite covering known-valid and
-known-invalid numbers for all four formats. Not yet done: ISBN-10 to ISBN-13
-conversion, a command-line entry point, and real registrant-range
-hyphenation.
+known-invalid numbers for all four formats. ISBN-10 to ISBN-13 conversion is
+also done. Not yet done: a command-line entry point and real
+registrant-range hyphenation.
 
 ## License
 
